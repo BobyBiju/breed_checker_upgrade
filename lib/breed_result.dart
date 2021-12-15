@@ -3,6 +3,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:percent_indicator/linear_percent_indicator.dart';
 import 'package:tflite/tflite.dart';
 import 'add_image.dart';
 
@@ -26,20 +27,26 @@ class _BreedResultState extends State<BreedResult> {
 
 
 
-  bool isLoading;
-  XFile imagee;
-  List outputt;
+  bool _isLoading;
+  XFile _image;
+  List _output;
+
+  String _confidence="";
+  double _percentage;
+  String _name="";
+  String numbers="";
+
 
 
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
-    isLoading=true;
+    _isLoading=true;
 
     loadModel().then((value){
       setState(() {
-        isLoading=false;
+        _isLoading=false;
       });
     });
     
@@ -61,23 +68,32 @@ class _BreedResultState extends State<BreedResult> {
         backgroundColor: Colors.white,
         title: ListTile(leading:Icon(FontAwesomeIcons.listUl,color: Colors.black,),title: Text('Screen 3',style: TextStyle(color: Colors.black),),),
       ),
-      body: isLoading?Container(
+      body: _isLoading?Container(
         alignment: Alignment.center,
         child: CircularProgressIndicator(
           color: Colors.black,
         ),
       ):Container(
+        padding: EdgeInsets.all(30.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
 
-            (imagee==null) ? Container():(Image.file(File(imagee.path))),
+            (_image==null) ? Container():(Image.file(File(_image.path))),
             SizedBox(height: 16,),
-            outputt == null? Text(""):Text("${outputt[0]["label"]}",
+            _output == null? Text(""):Text("Name:$_name \n Confidence:$_confidence",
               style: TextStyle(
                   color: Colors.black
-              ),)
+              ),),
+            LinearPercentIndicator(
+              animation: true,
+              animationDuration: 1000,
+              lineHeight: 30.0,
+              percent: _percentage,
+              progressColor: Colors.deepPurple,
+              backgroundColor: Colors.deepPurple.shade100,
+            ),
           ],
         ),
       ),
@@ -109,9 +125,13 @@ class _BreedResultState extends State<BreedResult> {
         threshold: 0.5);
 
     setState(() {
-      isLoading=false;
-      imagee=image;
-      outputt=output ;
+      _isLoading=false;
+      _image=image;
+      _output=output ;
+      String str =_output[0]["label"];
+      _name=str.substring(2);
+      _confidence=_output!=null?(_output[0]['confidence']*100.0).toString().substring(0,2)+"%":"";
+      _percentage=_output!=null?(_output[0]['confidence']):"";
     });
 
   }
@@ -122,8 +142,8 @@ class _BreedResultState extends State<BreedResult> {
     final XFile image = await _picker.pickImage(source: source);
     if(image ==null) return null;
     setState(() {
-      isLoading=true;
-      imagee= image ;
+      _isLoading=true;
+      _image= image ;
     });
     runModelOnImage(image);
   }

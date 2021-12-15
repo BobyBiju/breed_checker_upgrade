@@ -33,6 +33,7 @@ dependencies:
   tflite: ^1.1.2
   image_picker: ^0.8.4+1
   font_awesome_flutter: ^9.2.0
+  percent_indicator: ^3.4.0
 
 
 
